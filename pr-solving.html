@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>All-JS Toys</title>
+<style>
+  :root{--bg:#111;--accent:#4caf50;--warn:#ff9800;--danger:#f44336}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+  body{background:var(--bg);color:#fff;height:100vh;display:flex;flex-direction:column}
+  nav{display:flex;gap:10px;padding:10px;background:#000}
+  nav button{padding:6px 12px;border:none;border-radius:4px;cursor:pointer;background:#222;color:#fff}
+  nav button.active{background:var(--accent)}
+  .screen{display:none;flex:1;place-content:center;text-align:center}
+  .screen.active{display:flex;flex-wrap:wrap;gap:12px;align-content:center;justify-content:center}
+  /* drum pad */
+  .pad{width:100px;height:100px;background:#222;border-radius:8px;font-size:24px;display:grid;place-content:center;cursor:pointer;user-select:none;box-shadow:0 4px 8px #000}
+  .pad.active{transform:scale(.95);background:#444}
+  /* autocomplete */
+  #acBox{width:280px}#acBox input{width:100%;padding:10px;font-size:18px}#acList{list-style:none;margin:6px 0 0}#acList li{padding:8px;background:#222;border:1px solid #333;margin-bottom:4px;cursor:pointer}#acList li:hover{background:var(--accent)}
+  /* pomodoro */
+  #timer{font-size:72px;margin-bottom:20px}
+  .pomBtn{padding:10px 20px;margin:0 6px;border:none;border-radius:4px;cursor:pointer;font-size:16px}
+</style>
+</head>
+<body>
+<nav>
+  <button class="navBtn active" data-scr="drum">Drum Pad</button>
+  <button class="navBtn" data-scr="ac">Autocomplete</button>
+  <button class="navBtn" data-scr="pom">Pomodoro</button>
+</nav>
+
+<!-- 1. DRUM PAD -->
+<section id="drum" classscreen="active screen">
+  <!-- pads injected by JS -->
+</section>
+
+<!-- 2. AUTOCOMPLETE -->
+<section id="ac" class="screen">
+  <div id="acBox">
+    <input id="q" placeholder="Type country name…" autocomplete="off">
+    <ul id="acList"></ul>
+  </div>
+</section>
+
+<!-- 3. POMODORO -->
+<section id="pom" class="screen">
+  <div id="pomWrap">
+    <div id="timer">25:00</div>
+    <button id="pomStart" class="pomBtn" style="background:var(--accent)">Start</button>
+    <button id="pomPause" class="pomBtn" style="background:var(--warn)">Pause</button>
+    <button id="pomReset" class="pomBtn" style="background:var(--danger)">Reset</button>
+  </div>
+</section>
+
+<script>
+/* ---------- navigation ---------- */
+document.querySelectorAll('.navBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.navBtn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.scr).classList.add('active');
+  });
+});
+
+/* ---------- 1. DRUM PAD ---------- */
+const sounds={
+  Q:'https://assets.mixkit.co/sfx/preview/mixkit-hard-pop-click-2364.mp3',
+  W:'https://assets.mixkit.co/sfx/preview/mixkit-drum-bass-hit-2294.mp3',
+  E:'https://assets.mixkit.co/sfx/preview/mixkit-snare-drum-hit-2293.mp3',
+  A:'https://assets.mixkit.co/sfx/preview/mixkit-clap-in-the-auditorium-2182.mp3',
+  S:'https://assets.mixkit.co/sfx/preview/mixkit-hi-hat-loop-544.mp3',
+  D:'https://assets.mixkit.co/sfx/preview/mixkit-drum-single-hit-2334.mp3',
+  Z:'https://assets.mixkit.co/sfx/preview/mixkit-cowbell-double-hit-2295.mp3',
+  X:'https://assets.mixkit.co/sfx/preview/mixkit-crash-cymbal-hi-hat-2297.mp3',
+  C:'https://assets.mixkit.co/sfx/preview/mixkit-ride-cymbal-loop-545.mp3'
+};
+const drumSec=document.getElementById('drum');
+Object.entries(sounds).forEach(([key,url])=>{
+  const pad=document.createElement('div');
+  pad.className='pad'; pad.textContent=key;
+  const audio=new Audio(url); audio.preload='auto';
+  const play=()=>{pad.classList.add('active'); audio.currentTime=0; audio.play();};
+  const stop=()=>pad.classList.remove('active');
+  pad.onmousedown=play; pad.onmouseup=stop; pad.onmouseleave=stop;
+  drumSec.appendChild(pad);
+});
+document.addEventListener('keydown',e=>{
+  const k=e.key.toUpperCase();
+  const pad=[...document.querySelectorAll('.pad')].find(el=>el.textContent===k);
+  if(pad) pad.onmousedown();
+});
+document.addEventListener('keyup',e=>{
+  const k=e.key.toUpperCase();
+  const pad=[...document.querySelectorAll('.pad')].find(el=>el.textContent===k);
+  if(pad) pad.onmouseup();
+});
+
+/* ---------- 2. AUTOCOMPLETE ---------- */
+const countries=["Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+const q=document.getElementById('q');
+const acList=document.getElementById('acList');
+q.addEventListener('input',()=>{
+  const v=q.value.trim().toLowerCase();
+  const matches=v?countries.filter(c=>c.toLowerCase().startsWith(v)):[];
+  acList.innerHTML=matches.map(c=>`<li>${c}</li>`).join('');
+});
+acList.addEventListener('click',e=>{
+  if(e.target.tagName==='LI'){q.value=e.target.textContent;acList.innerHTML='';}
+});
+
+/* ---------- 3. POMODORO TIMER ---------- */
+const timerEl=document.getElementById('timer');
+const pomStart=document.getElementById('pomStart');
+const pomPause=document.getElementById('pomPause');
+const pomReset=document.getElementById('pomReset');
+let total=25*60;
+let remaining=total;
+let interval=null;
+function render(){
+  const m=String(Math.floor(remaining/60)).padStart(2,'0');
+  const s=String(remaining%60).padStart(2,'0');
+  timerEl.textContent=`${m}:${s}`;
+}
+function tick(){
+  if(remaining===0){clearInterval(interval);interval=null;document.body.style.background='var(--accent)';return}
+  remaining--;render();
+}
+pomStart.addEventListener('click',()=>{if(!interval)interval=setInterval(tick,1000)});
+pomPause.addEventListener('click',()=>{clearInterval(interval);interval=null});
+pomReset.addEventListener('click',()=>{
+  clearInterval(interval);interval=null;remaining=total;render();document.body.style.background='var(--bg)';
+});
+render();
+</script>
+</body>
+</html>
